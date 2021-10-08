@@ -1,0 +1,6 @@
+login history max size = 30
+data in userPasswords are saved after applying .split()
+you can not edit/change category or creation date
+theme. intel search change will restart the program
+take lastUpdate = lastUpdateDate or creationDate or savedDate
+app designed for 1059*788 
