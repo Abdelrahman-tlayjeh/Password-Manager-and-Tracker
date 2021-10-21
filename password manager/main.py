@@ -4,6 +4,7 @@ from PyQt5.QtCore import QDate
 from UI.app_ui import Ui_MainWindow
 from data import json_script, db_script
 
+
 #Setup UI
 import sys
 app = QtWidgets.QApplication(sys.argv)
@@ -544,17 +545,22 @@ def view_panel():
 def view_report():
     MainWindow.hide()
     report_dialog.run(usn)
+    #check if [edit_selected] is pressed
     with open("temp_data\selected_id.txt", "r") as f:
         id = f.readline()
+        #check if [edit_selected] is pressed
         try:
-            int(id)
+            int(id)     #to raise error if no id
+            #go to search, search for id, press edit, and set focus on password
             ui.go_search_pushButton.click()
             ui.search_by_comboBox.setCurrentIndex(4)
             ui.search_lineEdit.setText(id)
             ui.search_password_pushButton.click()
             ui.edit_pushButton.click()
             ui.password_lineEdit.setFocus()
+            #re-show main window
             MainWindow.show()
+        #no element selcted to edit
         except:
             MainWindow.show()
 

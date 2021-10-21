@@ -9,10 +9,8 @@ ui.setupUi(Dialog)
 
 usn = None
 
-
 ui.important_to_change_edit_pushButton.setDisabled(True)
 ui.can_change_edit_pushButton.setDisabled(True)
-
 
 def run(username):
     global usn
@@ -31,11 +29,6 @@ def clear():
     ui.important_to_change_edit_pushButton.setDisabled(True)
     ui.can_change_edit_pushButton.setDisabled(True)
 
-
-
-def exit():
-    Dialog.close()
-    clear()
 
 from collections import Counter
 
@@ -66,8 +59,8 @@ def analyse_data():
     #loop through each tuple(info set)
     for tup in data:
         accountPass = tup[4]
-        #take lastUpdate = lastUpdateDate or creationDate or savedDate
-        lastUpdate = tup[8][-1].split("-") if tup[8] != "Never" else tup[5].split("/")[::-1] if tup[5] != "-" else tup[7].split("-")
+        #lastUpdate = lastUpdateDate or creationDate or savedDate
+        lastUpdate = tup[8].split(",")[-1].split("-") if tup[8] != "Never" else tup[5].split("/")[::-1] if tup[5] != "-" else tup[7].split("-")
         lastUpdate = date(int(lastUpdate[0]), int(lastUpdate[1]), int(lastUpdate[2]))
         accountPassRate = tup[10]
         #if password is weak and not updated for 30 day --> to imp.
@@ -131,33 +124,35 @@ def display():
     #get analysed data
     result = analyse_data()
     #display in important to change
-    fin_imp_lst = []
-    for i in result[0]:
-        head = [elem for elem in i[1:4] if elem != "-"][0]   #first exist of (usn. email, app name)
-        pswd = i[4]
-        fin_imp_lst.append("__".join((head, pswd)))
+    if result[0]:
+        fin_imp_lst = []
+        for i in result[0]:
+            head = [elem for elem in i[1:4] if elem != "-"][0]   #first exist of (usn. email, app name)
+            pswd = i[4]
+            fin_imp_lst.append("__".join((head, pswd)))
 
-    fin_imp_lst = list(dict(sorted(dict(Counter(fin_imp_lst)).items(), key= lambda x: x[1])).items())
-    fin_imp_lst = [c[0] for c in fin_imp_lst]   #transform (usn__pswd, x) --> usn_pswd //[x == count]
+        fin_imp_lst = list(dict(sorted(dict(Counter(fin_imp_lst)).items(), key= lambda x: x[1])).items())
+        fin_imp_lst = [c[0] for c in fin_imp_lst]   #transform (usn__pswd, x) --> usn_pswd //[x == count]
 
-    ui.important_to_change_listWidget.addItems(fin_imp_lst)
+        ui.important_to_change_listWidget.addItems(fin_imp_lst)
     #display in good to change
-    fin_good_lst = []
-    for x in result[1]:
-        head = [elem for elem in x[1:4] if elem != "-"][0]   #first exist of (usn. email, app name)
-        pswd = x[4]
-        fin_good_lst.append("__".join((head, pswd)))
-    
-    fin_good_lst = list(dict(sorted(dict(Counter(fin_good_lst)).items(), key= lambda x: x[1])).items())
-    fin_good_lst = [c[0] for c in fin_good_lst]   #transform (usn__pswd, x) --> usn_pswd [x == count]
+    if result[1]:
+        fin_good_lst = []
+        for x in result[1]:
+            head = [elem for elem in x[1:4] if elem != "-"][0]   #first exist of (usn. email, app name)
+            pswd = x[4]
+            fin_good_lst.append("__".join((head, pswd)))
+        
+        fin_good_lst = list(dict(sorted(dict(Counter(fin_good_lst)).items(), key= lambda x: x[1])).items())
+        fin_good_lst = [c[0] for c in fin_good_lst]   #transform (usn__pswd, x) --> usn_pswd [x == count]
 
-    ui.can_change_listWidget.addItems(fin_good_lst)
+        ui.can_change_listWidget.addItems(fin_good_lst)
 
 #save id of selected data in external file then close the dialog
 def save_selcted_id(id):
     with open("temp_data\selected_id.txt", "w") as f:
         f.write(str(id))
-    exit()
+    Dialog.close()
 
 #get the id of selected data in important to change then call save_selcted_id()
 def start_edit_important():
@@ -200,7 +195,8 @@ def export():
     if fileName and save_location:
         #join all tuples from result[0] and result[1] in report list
         report = result[0]
-        report.append(*result[1])
+        if result[1]:
+            report.append(*result[1])
         #excel header
         header = ("Id", "Username", "E-mail", "App Name", "Password", "Creation date", "Category", "Save date", "Last update date", "Mobile number", "Password rate", "Note", "Issue")
         #try generate excel file

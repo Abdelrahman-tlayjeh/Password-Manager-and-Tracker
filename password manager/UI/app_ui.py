@@ -785,7 +785,7 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.add_email_lineEdit.setFont(font)
         self.add_email_lineEdit.setText("")
-        self.add_email_lineEdit.setMaxLength(60)
+        self.add_email_lineEdit.setMaxLength(50)
         self.add_email_lineEdit.setObjectName("add_email_lineEdit")
         self.horizontalLayout_7.addWidget(self.add_email_lineEdit)
         self.verticalLayout_12.addLayout(self.horizontalLayout_7)

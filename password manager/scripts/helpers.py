@@ -51,7 +51,7 @@ def removeEmpty(lst):
 
 
 def isEmail(email):
-    email_pattern = re.compile(r"\w+@\w+\.\w{2,3}")
+    email_pattern = re.compile(r"\w+@\w+\.\w{2,4}")
     return re.fullmatch(email_pattern, email)
 
 

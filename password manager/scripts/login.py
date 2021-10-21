@@ -30,7 +30,7 @@ def isUsernameValid(usn):
 
 def signup(usn, pswd, pswd2, email):
     #Default data
-    categories = ["None", "Social", "Education", "Entertainment"]
+    categories = ["Tools", "Education", "Social"]
     preferredTheme = "dark"
     saveLoginDuration = "forever"
     creationDate = datetime.now()
