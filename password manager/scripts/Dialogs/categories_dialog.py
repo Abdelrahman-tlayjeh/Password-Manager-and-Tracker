@@ -17,7 +17,7 @@ def run(username, categories):
     usn = username
     ctgs = categories.split(",")
     modified = categories.split(",")
-
+    #show categories
     display(ctgs)
     Dialog.exec_()
     ui.listWidget.clear()

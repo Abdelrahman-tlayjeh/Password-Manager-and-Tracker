@@ -250,6 +250,7 @@ def open_more():
     more_dialog.run()
     MainWindow.show()
 
+current_info = None
 #cancel editing current on-display result
 def cancel_editing():
     #reset more button
@@ -275,6 +276,7 @@ def cancel_editing():
 
 #edit current on-display result
 def edit_current_result():
+    global current_info
     #setup save button
     ui.more_pushButton.setText("Save")
     ui.more_pushButton.setIcon(QtGui.QIcon())
@@ -287,83 +289,100 @@ def edit_current_result():
     ui.delete_pushButton.clicked.connect(cancel_editing)
     #disable edit button
     ui.edit_pushButton.setDisabled(True)
+    #save current info
     #set linEdits to accept edit    (read & write)
+    current_info = []
     for lineEdit in (ui.username_lineEdit, ui.email_lineEdit, ui.appName_lineEdit, ui.password_lineEdit):
+        current_info.append(lineEdit.text())
         lineEdit.setReadOnly(False)
 
 #helper: check if informations after edit are valid/accepted
 def acceptEdit(data_lst):
     #required data entered
-    if any(data_lst[ :3]) and data_lst[3]:
-        #if email changed
-        if data_lst[1] != "-":
-            #if email is not valid
-            if not helpers.isEmail(data_lst[1]):
-                return (False, "Entered E-mail is invalid...")
-        #required data entered and email is valid
-        return (True, )
-    #required data not entered
-    return (False, "You must enter at least one of (username, email, app name) and a password...")
-    
+    #if no at least one of (username, email, app name)
+    if not any(map(lambda x: "" if x == "-" else x, data_lst[ :3])):
+        return (False, "You must enter at least one of (username, email, app name) and a password...")
+    #if email is changed
+    if data_lst[1] != "-":
+        if not helpers.isEmail(data_lst[1]):
+            return (False, "Invalid E-mail!")
+    #Every thing is correct
+    return (True, )
+
 #apply/save edit
 def save_editing():
-    #show feedback dialog to get confirmation from user
-    feedback_dialog.show_feedback("Are you sure you want to update this informations?\n")
-    #helper var: to know if edit must be closed or stay open
-    keepEdit = False
-    #if user confirm edit
-    if feedback_dialog.feedbackIsConfirmed:
-        global current_result_index
-        #list store the new data (after edit)
-        newData = []
-        #get saved lastUpdateDate (from search results)
-        lastUpdateDate = search_results[current_result_index][8]
-        #save new/editted main informations in newData list
-        for lineEdit in (ui.username_lineEdit, ui.email_lineEdit, ui.appName_lineEdit, ui.password_lineEdit):
-            newData.append(lineEdit.text())
-        #check if password is changed
-        if search_results[current_result_index][4] != ui.password_lineEdit.text():
-            #if first time update
-            if lastUpdateDate == "Never":
-                lastUpdateDate = ",".join(["First time", str(date.today())])
-            #if there is previous update dates saved
+    #check that data are changed or not
+    edited_info = [lineEdit.text().strip() if lineEdit.text().strip() else "-" for lineEdit in (ui.username_lineEdit, ui.email_lineEdit, ui.appName_lineEdit, ui.password_lineEdit)]
+    #if there are changes
+    if edited_info != current_info:
+        #show feedback dialog to get confirmation from user
+        feedback_dialog.show_feedback("Are you sure you want to update this informations?\n")
+        #helper var: to know if edit must be closed or stay open
+        keepEdit = False
+        #if user confirm edit
+        if feedback_dialog.feedbackIsConfirmed:
+            global current_result_index
+            #list store the new data (after edit)
+            newData = []
+            #get saved lastUpdateDate (from search results)
+            lastUpdateDate = search_results[current_result_index][8]
+            #save new/editted main informations in newData list
+            for lineEdit in (ui.username_lineEdit, ui.email_lineEdit, ui.appName_lineEdit, ui.password_lineEdit):
+                newData.append(lineEdit.text())
+            #check if password is changed
+            if search_results[current_result_index][4] != ui.password_lineEdit.text():
+                #if password does not exist
+                if not ui.password_lineEdit.text().strip():
+                    cancel_editing()
+                    return feedback_dialog.show_feedback("Zaki :)")
+                #if first time update
+                if lastUpdateDate == "Never":
+                    lastUpdateDate = ",".join(["First time", str(date.today())])
+                #if there is previous update dates saved
+                else:
+                    #transform saved lastUpdateDate to list
+                    lastUpdateDate = lastUpdateDate.split(",")
+                    #add the new date
+                    lastUpdateDate.append(str(date.today()))
+                    #retransform to string in the final format (in wich will be saved in database)
+                    lastUpdateDate = ",".join(lastUpdateDate)
+            
+            #add lastUpdateDate to the data lst
+            newData.append(lastUpdateDate)
+            #add password rate
+            newData.append(helpers.checkPasswordRate(newData[3]))
+            #remove empty
+            newData = helpers.removeEmpty(newData)
+            #validate changed informations (newData list)
+            validation = acceptEdit(newData)
+            #if valid
+            if validation[0]:
+                #save in database
+                db_script.update_info(usn, search_results[current_result_index][0], newData)
+            #if not valid
             else:
-                #transform saved lastUpdateDate to list
-                lastUpdateDate = lastUpdateDate.split(",")
-                #add the new date
-                lastUpdateDate.append(str(date.today()))
-                #retransform to string in the final format (in wich will be saved in database)
-                lastUpdateDate = ",".join(lastUpdateDate)
-        
-        #add lastUpdateDate to the data lst
-        newData.append(lastUpdateDate)
-        #add password rate
-        newData.append(helpers.checkPasswordRate(newData[3]))
-        #remove empty
-        newData = helpers.removeEmpty(newData)
-        #validate changed informations (newData list)
-        validation = acceptEdit(newData)
-        #if valid
-        if validation[0]:
-            #save in database
-            db_script.update_info(usn, search_results[current_result_index][0], newData)
-        #if not valid
-        else:
-            #show feedback containing the error
-            feedback_dialog.show_feedback(validation[1])
-            #kepp edit on
-            keepEdit = True
+                #show feedback containing the error
+                feedback_dialog.show_feedback(validation[1])
+                #kepp edit on
+                keepEdit = True
 
-    #close edit and apply changes
-    if not keepEdit:
-        #cancel edit
+        #close edit and apply changes
+        if not keepEdit:
+            #cancel edit
+            cancel_editing()
+            #update on-display result
+            lastIndex = current_result_index
+            search()    #to get updated informations from database
+            #display the changed result (!!if searchBy keyword is not changed while editing!!)
+            try:
+                current_result_index = lastIndex
+                display_result()
+            #searchBy keyword is changed
+            except IndexError:
+                pass
+    #no changes
+    else:
         cancel_editing()
-        #update on-display result
-        lastIndex = current_result_index
-        search()    #to get updated informations from database
-        # display the changed result (!!if searchBy keyword is not changed while editing!!)
-        current_result_index = lastIndex
-        display_result()
 
 #delete current on-display result
 def delete_current_result():
