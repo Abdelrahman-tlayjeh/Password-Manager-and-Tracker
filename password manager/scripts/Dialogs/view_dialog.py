@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets
 from UI import view_dialog_ui
-from data import db_script
+from appData import db_script
 from scripts import helpers, generator
 
 Dialog = QtWidgets.QDialog()

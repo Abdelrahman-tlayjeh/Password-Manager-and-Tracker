@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets
 from UI.categories_dialog_ui import Ui_Dialog
-from data import db_script, json_script
+from appData import db_script, json_script
 
 Dialog = QtWidgets.QDialog()
 ui = Ui_Dialog()

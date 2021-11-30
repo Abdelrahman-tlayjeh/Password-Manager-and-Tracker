@@ -1,7 +1,7 @@
 from datetime import date
 from PyQt5 import QtWidgets
 from UI import report_dialog_ui
-from data import db_script
+from appData import db_script
 
 Dialog = QtWidgets.QDialog()
 ui = report_dialog_ui.Ui_Dialog()
@@ -119,7 +119,7 @@ result = None   #[[important to change tuples], [good to change tuples]]
 def display():
     global result
     #reset external file that contains id of selected data
-    with open("temp_data\selected_id.txt", "w") as f:
+    with open("appData\selected_id.txt", "w") as f:
         f.write("No Selection")
     #get analysed data
     result = analyse_data()
@@ -150,7 +150,7 @@ def display():
 
 #save id of selected data in external file then close the dialog
 def save_selcted_id(id):
-    with open("temp_data\selected_id.txt", "w") as f:
+    with open("appData\selected_id.txt", "w") as f:
         f.write(str(id))
     Dialog.close()
 

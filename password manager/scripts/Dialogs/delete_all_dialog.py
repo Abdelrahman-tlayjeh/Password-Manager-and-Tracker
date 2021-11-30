@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets
 from UI import delete_all_dialog_ui
-from data import db_script
+from appData import db_script
 from scripts import hash
 
 Dialog = QtWidgets.QDialog()

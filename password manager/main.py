@@ -2,11 +2,19 @@ from datetime import date
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QDate
 from UI.app_ui import Ui_MainWindow
-from data import json_script, db_script
+from appData import json_script, db_script
 
+#For Devices Pixel Differences
+def FIX_PIXELS_DIFF():
+    from os import environ
+    environ["QT_DEVICE_PIXEL_RATIO"] = "0"
+    environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+    environ["QT_SCREEN_SCALE_FACTORS"] = "1"
+    environ["QT_SCALE_FACTOR"] = "1"
 
 #Setup UI
 import sys
+FIX_PIXELS_DIFF()
 app = QtWidgets.QApplication(sys.argv)
 MainWindow = QtWidgets.QMainWindow()
 ui = Ui_MainWindow()
@@ -565,7 +573,7 @@ def view_report():
     MainWindow.hide()
     report_dialog.run(usn)
     #check if [edit_selected] is pressed
-    with open("temp_data\selected_id.txt", "r") as f:
+    with open("appData\selected_id.txt", "r") as f:
         id = f.readline()
         #check if [edit_selected] is pressed
         try:
@@ -807,7 +815,7 @@ from scripts.Dialogs import send_feedback_dialog
 
 def about_show():
     toggle_settings(5)
-    with open(r"about\about.txt.TXT", "r") as f:
+    with open(r"appData\about.txt.TXT", "r") as f:
         txt = f.readlines()
         ui.about_textBrowser.setText("".join(txt))
 

@@ -1,4 +1,4 @@
-from data import db_script, json_script
+from appData import db_script, json_script
 from scripts.hash import hash
 from datetime import date, datetime
 
